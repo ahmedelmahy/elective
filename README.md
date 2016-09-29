@@ -51,6 +51,7 @@ you will enter something like this    19,59    without spaces meaning you want 1
 
 11-the program will search for the two IDs in the form (They both must fill the form ,If one of them didn't he will be distributed randomly). the program will change their marks to the mean mark . and will change their both choices to be the choices of one of them (exactly, the one who submits later).
 
+12-the program will sort marks descendingly.
 
 
 
