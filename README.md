@@ -53,5 +53,31 @@ you will enter something like this    19,59    without spaces meaning you want 1
 
 12-the program will sort marks descendingly.
 
+13- the program will distribute the electives for the students .
+
+#Interpreting Results
+
+##Report 1
+This is a text file containing the IDs of the students who filled the questionaire more than once
+
+
+##Report 2
+This is a text file containing the IDs of students who were distributed randomly because they don't have available marks
+
+##Report 3
+This is the diagnosis file. And Also the result. It's a csv file open it with Excel. It contains a table of students IDs, marks (arranged desc.), the accepted choice (i.e. the name of the course they will go to), and most importantly the number of that  course in their choices (i.e. when they filled the form).
+
+##Report 4
+these are the results again but a file for every course (which contains only students chosen for that course)
+
+##Report 5 still not done
+This is a txt file containing IDs of the students who didn't fill the form .
+
+##Report 6 still not done
+This is a txt file containing the free places in all courses, that's not yet filled.
+
+##Graph 1
+This graph is for improving and assessing the elective courses.  This is the most important for the school administration. It shows the courses arranged based on students preferences. 
+
 
 
