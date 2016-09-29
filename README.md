@@ -34,6 +34,7 @@ The program do these steps in order (to improve the program we will just add mor
 
 ## Now Enter the marks
 You need to have an Excel file containing the results of the students
+
 6-the program will ask you to enter IDs of the students , open the Excel file and copy the IDs of all students whom this elective is for.  then paste it -every ID in a line.
 
 7-the program will ask you to enter IDs of the students whom ID you have just copied, go back to the excel file copy their results. then paste it -every mark in a line corresponding the lines of the IDs (the program will not continue except that marks correspond to the IDs- Don't worry about students whose marks are empty or raseb the program also will not recognize them and the will be left down and distributed randomly -If you intend to manually give them a results this easy but you will suffer summing their results).
