@@ -5,7 +5,7 @@ This script is written in R to distribute students at Faculty of medicine, Alexa
 
 * Download R on your computer for windows from [here](https://cran.r-project.org/bin/windows/base/R-3.3.1-win.exe) and install it (don't change any thing; just next,next...finish).
 
-* Download the R script that I made 
+* Download the R script that I made right click on [here](https://raw.githubusercontent.com/ahmedelmahy/elective/master/elective.R) and choose save as
 
 * Go to Start->all programs-> R.
 
