@@ -23,25 +23,26 @@ Design a Google form that has a format like [this](https://docs.google.com/forms
 The program do these steps in order (to improve the program we will just add more steps). the program will ask you in a user friendly way.
 
 1- A dialog will open to choose the csv file that you just downloaded.
+2-the program will ask you to choose the folder where you want to save the output (you can choose the desktop)
 
-2- the program will ask you to enter the number of students needed for every course (Enter 0 if the course was deleted later).
+3- the program will ask you to enter the number of students needed for every course (Enter 0 if the course was deleted later).
 
-3-the program will ask you to tell him which question contains the IDs of the students.
+4-the program will ask you to tell him which question contains the IDs of the students.
 
-4-the program will ask you if there is a question of peope to be excluded e.g. those who will take it outside Egypt and the answer to be excluded i.e. 'yes'.
+5-the program will ask you if there is a question of peope to be excluded e.g. those who will take it outside Egypt and the answer to be excluded i.e. 'yes'.
 
-5-the program will count the number of entries and remove dublicated entries (i.e students who filled the form more than one, only their last fill will stay) , the program will report later a list of students who entered more than once to make things accurate.
+6-the program will count the number of entries and remove dublicated entries (i.e students who filled the form more than one, only their last fill will stay) , the program will report later a list of students who entered more than once to make things accurate.
 
 ### Now Enter the marks
 You need to have an Excel file containing the results of the students
 
-6-the program will ask you to enter IDs of the students , open the Excel file and copy the IDs of all students whom this elective is for.  then paste it -every ID in a line.
+7-the program will ask you to enter IDs of the students , open the Excel file and copy the IDs of all students whom this elective is for.  then paste it -every ID in a line.
 
-7-the program will ask you to enter IDs of the students whom ID you have just copied, go back to the excel file copy their results. then paste it -every mark in a line corresponding the lines of the IDs (the program will not continue except if that marks correspond to the IDs- Don't worry about students whose marks are  raseb the program also will give them 0 marks and they will be left down and distributed randomly).
+8-the program will ask you to enter IDs of the students whom ID you have just copied, go back to the excel file copy their results. then paste it -every mark in a line corresponding to the lines of the IDs (the program will not continue except if that marks correspond to the IDs- Don't worry about students whose marks are  raseb the program also will give them 0 marks and they will be left down and distributed randomly).Also the program assumes that there is no empty results (i.e. either a mark ,raseb or غ ب)
 
-8-the program will also show you the IDs beside their marks, make sure the every ID has the marks beside him. Don't edit any thing just close the dialog. If this is not the case , try to investigate, maybe you copied more IDs than marks and close the program and open it again.
+8-the program will also show you the IDs beside their marks, make sure that every ID has the marks beside him. Don't edit any thing just close the dialog. If this is not the case , try to investigate, maybe you copied more IDs than marks and close the program and open it again.
 
-9-the program will compare the IDs in the form with the IDs you entered and will reconise IDs that you didn't enter like 'م45'
+9-the program will compare the IDs in the form with the IDs you entered and will recognise IDs that you didn't enter like 'م45'
 . The program now asks you to enter a mark for م45 , you have to do something , Either search for his mark and enter it or give him 0 , then he will be distributed randomly like el mota8ybeen wel rasbeen.
 
 10-Now the program will ask you to enter students who you want to be together ;
@@ -65,16 +66,18 @@ This is a text file containing the IDs of the students who filled the questionai
 This is a text file containing the IDs of students who were distributed randomly because they don't have available marks
 
 ##Report 3
-This is the diagnosis file. And Also the result. It's a csv file open it with Excel. It contains a table of students IDs, marks (arranged desc.), the accepted choice (i.e. the name of the course they will go to), and most importantly the number of that  course in their choices (i.e. when they filled the form).
+This is the diagnosis file. And Also the result. It's a csv file open it with Excel. It contains a table of students IDs, marks (arranged desc.), the accepted choice (i.e. the name of the course they will go to), and most importantly the number of that  course in their choices (i.e. when they filled the form) which will help diagnose any problem with the program.
 
 ##Report 4
 these are the results again but a file for every course (which contains only students chosen for that course)
 
-##Report 5 still not done
+##Report 5 
 This is a txt file containing IDs of the students who didn't fill the form .
 
-##Report 6 still not done
+##Report 6 
 This is a txt file containing the free places in all courses, that's not yet filled.
+
+##R
 
 ##Graph 1
 This graph is for improving and assessing the elective courses.  This is the most important for the school administration. It shows the courses arranged based on students preferences. 
