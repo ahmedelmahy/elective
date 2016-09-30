@@ -94,7 +94,7 @@ To test the program, I simulated all the process . I created [this form](https:/
 
 I downloaded the responses as csv file. right click [here](https://raw.githubusercontent.com/ahmedelmahy/elective/master/Elective%20simulation.csv) and choose save link as.
 
-I create a file containing the marks of the students, you will copy from him . right click [here](https://github.com/ahmedelmahy/elective/blob/master/results.xlsx?raw=true) and choose save link as .
+I create a file containing the marks of the students, you will copy from it . right click [here](https://github.com/ahmedelmahy/elective/blob/master/results.xlsx?raw=true) and choose save link as .
 
 Start the program and enter the number needed for courses e.g. 2 
 
