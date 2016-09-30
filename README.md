@@ -77,10 +77,24 @@ This is a txt file containing IDs of the students who didn't fill the form .
 ##Report 6 
 This is a txt file containing the free places in all courses, that's not yet filled.
 
-##R
+##Report7
+This is again the results i.e that same as Report 3 ,but arranged by IDs to help find the choices, and can be published on ASM
 
 ##Graph 1
 This graph is for improving and assessing the elective courses.  This is the most important for the school administration. It shows the courses arranged based on students preferences. 
 
 
+#How to know that the program nailed it ?
+I wish we make a test first,but whatever. The Report 7 will be published on the group, Every student will see his marks, his choice and the number of it in his choices in the form (It should be reasonable).
+
+Report 3 arrange the students by marks, so we will see this patten (from up to low , the number of the choice will increase)
+
+#Wanna test ?
+To test the program, I simulated all the process . I created [this form](https://docs.google.com/forms/d/e/1FAIpQLSdZWX7qiIEo-gFScxqoMNtq2hnE7jsE7dwIwrjn-adwGxhiuw/viewform)   and entered 9 times (one of them repeated and one of them has the ID م45)
+
+I downloaded the responses as csv file. right click [here](https://raw.githubusercontent.com/ahmedelmahy/elective/master/Elective%20simulation.csv) and choose save link as.
+
+I create a file containing the marks of the students, you will copy from him . right click [here](https://github.com/ahmedelmahy/elective/blob/master/results.xlsx?raw=true) and choose save link as .
+
+Start the program and enter the number needed for courses e.g. 2 
 
