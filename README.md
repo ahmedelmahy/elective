@@ -9,10 +9,7 @@ This script is written in R to distribute students at Faculty of medicine, Alexa
 
 * Go to Start->all programs-> R.
 
-* R will open, copy and paste the following:
-```R
-source(file.choose())
-```
+* R will open, go to file->Source R code..
 A dialog will open choose the R script that you downloaded whose name is 'elective.R' .
 
 
@@ -80,6 +77,8 @@ This is a txt file containing the free places in all courses, that's not yet fil
 ##Report7
 This is again the results i.e that same as Report 3 ,but arranged by IDs to help find the choices, and can be published on ASM
 
+##Report8  Not yet done
+This is a txt file containing IDs of students who will take the elective outside Egypt
 ##Graph 1
 This graph is for improving and assessing the elective courses.  This is the most important for the school administration. It shows the courses arranged based on students preferences. 
 
@@ -99,4 +98,3 @@ I create a file containing the marks of the students, you will copy from it . ri
 Start the program and enter the number needed for courses e.g. 2 
 
 
-outsideids report
