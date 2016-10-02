@@ -98,3 +98,5 @@ I create a file containing the marks of the students, you will copy from it . ri
 
 Start the program and enter the number needed for courses e.g. 2 
 
+
+outsideids report
