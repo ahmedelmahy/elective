@@ -9,3 +9,8 @@ git config remote.origin.url git@github.com:your_username/your_project.git
 
 this is from 
 http://applyr.blogspot.com.eg/2014/05/rstudio-pushing-to-github-with-ssh.html
+
+my terminal is : /usr/bin/lxterminal
+
+this is also useful
+https://www.datascienceriot.com/how-to-link-r-studio-to-your-github-account/kris/
