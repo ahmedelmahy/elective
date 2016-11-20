@@ -2,9 +2,9 @@ if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
 if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
 
 options(guiToolkit="RGtk2")
-job1()
+read_form()  #I will put it at the end of the file
 
-job1<-function(){
+read_form<-function(){
   window <- gwindow("elective", visible=FALSE)
   paned <- gpanedgroup(cont = window)
   group <- ggroup(cont = paned, horizontal = FALSE)
@@ -21,12 +21,12 @@ job1<-function(){
     if (wdpath!='Select a Folder'){setwd(wdpath)}
     dat<<-read.csv(formpath,encoding='UTF-8')
     dispose(window)
-    job2(dat)
+    read_marks_and_courses(dat)
   })
   visible(window) <- TRUE
 }
 
-job2=function(dat){
+read_marks_and_courses=function(dat){
   dff=data.frame(id='',marks='')
   marksfile<<-dfedit(dff)
   marksfile$marks=as.numeric(as.character(marksfile$marks))
@@ -50,15 +50,15 @@ job2=function(dat){
   colnames(dat)[colnames(dat)==idname]<<-'ID'
   d<<-dat[!rev(duplicated(rev(dat$ID))),]
   #enteredmore<<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
-  prevd<<-job3(curz)
-  #d<<-job4(d,prevd)
-  #d<<-job5(d,marksfile$id,marksfile$marks,xideal,work,curz)
+  prevd<<-read_prev(curz)
+  d<<-remove_prev(d,prevd)
+  d<<-add_marks(d,marksfile$id,marksfile$marks,xideal,work,curz)
   #d<<-entry_mistake_checker(d)
   #plot2<<-job6(d,xideal,work,curz)
   
 }
 
-job3=function(curz){
+read_prev=function(curz){
   dffg=data.frame(id='',prev1='',prev2='',prev3='')
   prevd<<-dfedit(dffg)
   trim <- function (x) gsub("^\\s+|\\s+$", "", x) #define the trim function
@@ -66,8 +66,6 @@ job3=function(curz){
     gsub("[[:punct:]]", "", tolower(x))
   } 
   #prevd<<-data.frame(id,a,b,c)
-  prevdarch=prevd
-  prevd=prevdarch
   prevd[,2]=clean(trim(as.character(prevd[,2])));prevd[,3]=clean(trim(as.character(prevd[,3])));prevd[,4]=clean(trim(as.character(prevd[,4])))
   #prevd=tolower(prevd[,2])
   collected=c(prevd[,2],prevd[,3],prevd[,4])
@@ -90,7 +88,7 @@ job3=function(curz){
   return(prevd)
 }
 
-job4=function(d,prevd){
+remove_prev=function(d,prevd){
   d$ID=as.character(d$ID)
   prevd[,1]=as.character(prevd[,1])
   prevd[,2]=as.character(prevd[,2])
@@ -111,36 +109,37 @@ job4=function(d,prevd){
 
 
 
-job5=function(d,newid,newmarks,xideal,work,curz){
-  newid=marksfile$id;newmarks=marksfile$marks
+add_marks=function(d,newid,newmarks,xideal,work,curz){
+  newid=as.character(marksfile$id);newmarks=as.character(marksfile$marks)
   notfound=d$ID[which(!(d$ID %in% newid))]
   if (length(notfound)>0){
     cat('\n The following students filled the form\n
         and their marks are not found enter the marks, 0 or no to exclude them\n
         ,(if you see <U+0645> it mean the letter meem)')
     readline(' press Enter')
+    w=0
     for (q in 1:length(notfound)){
       qenter=readline(paste(notfound[q],' :'))
       if (!is.na(as.numeric(qenter))){
-        newid[length(newid)+q]=as.character(notfound[q])
-        newmarks[length(newmarks)+q]=qenter
+        newid[length(newid)+q-w]=as.character(notfound[q])
+        newmarks[length(newmarks)+q-w]=qenter
       }
       if(is.na(as.numeric(qenter))){
         d<<-d[-which(notfound[q]== d$ID),]
+        w=w+1
       }
     }
   }
   
-  
-  job5sub1(d,xideal,work,curz,newid,newmarks)
-  
+  d=check_outside(d,xideal,work,curz,newid,newmarks)
+  add_marks_to_form()
   
   
   #d=d[order(as.numeric(d$markss),decreasing =T),]
   #return(d)
 }
 
-job5sub1=function(d,xideal,work,curz,newid,newmarks){
+check_outside=function(d,xideal,work,curz,newid,newmarks){
   cat('\n\n\nElective Outside\n')
   readline('press Enter')
   isthere= select.list(c('yes there is a question about elective outside','no'))
@@ -149,9 +148,9 @@ job5sub1=function(d,xideal,work,curz,newid,newmarks){
     cat('\n\nWhich answer to exclude ?')
     here=select.list(levels(d[,called]),title='Which answer to exclude ?')
     outsideids=as.character(d$ID[d[,called]==here])
-    print(outsideids)
+    #print(outsideids)
     colnames(d)[colnames(d)==called]='outside'
-    edit(d)
+    #edit(d)
     d$outside=as.character(d$outside)
     d$outside[d$outside!=here]=rep(0,length(which(d$outside!=here)))
     d$outside[d$outside==here]=rep(1,length(which(d$outside==here)))
@@ -167,25 +166,36 @@ job5sub1=function(d,xideal,work,curz,newid,newmarks){
     #  the memory. As I removed ',n,' students who
     #  will take the elective abroad ')
   }
-  request=which(!newid %in% d$ID )
   
-  requested<<-requestdecision(request)
+  request=newid[which(!newid %in% d$ID )]
+  requested<<-request_ids_to_add(request)
+  d<<-add_ids(d,requested,curz)
+  return(d)
+  }
+
+add_ids=function(d,requested,curz){
+  a=rep(length(curz),dim(d)[2]*length(requested))
+  mat=matrix(a,nrow=length(requested))
+  add_d=as.data.frame(mat);colnames(add_d)=colnames(d)
+  add_d$ID=requested
+  d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.integer)
+  d=rbind(d,add_d)
+  return(d)
+  }
+
+#a=rep(0,length(curz))
+#if (length(requested)>0){
   
-  
-}
-a=rep(0,length(curz))
-if (length(requested)>0){
-  
-  data.frame(ID=requested,)
-  d2$ID=c(d2$ID,requested)
-}
+#  data.frame(ID=requested,)
+#  d2$ID=c(d2$ID,requested)
+#}
 
 
-d$markss=rep(0,dim(d)[1])
-for (lolo in 1: length(newid)){
-  d$markss[which(d$ID == newid[lolo])]  =newmarks[lolo]
-}
-}
+#d$markss=rep(0,dim(d)[1])
+#for (lolo in 1: length(newid)){
+#  d$markss[which(d$ID == newid[lolo])]  =newmarks[lolo]
+#}
+#}
 
 
 entry_mistake_checker=function(d){
@@ -204,7 +214,7 @@ entry_mistake_checker=function(d){
   }
 }
 
-requestdecision=function(request){
+request_ids_to_add=function(request){
   if (length(request)>0){
     cat('\nThe following students did not fill the form\n
         Are they with us? enter yes or no')
@@ -218,7 +228,8 @@ requestdecision=function(request){
         requested[u]=request[p]
       }
     }}
-  return(requested)}
+  return(requested)
+  }
 
 job6=function(d,work,xideal,curz){
   puma=(which(colnames(d)%in%curz))
