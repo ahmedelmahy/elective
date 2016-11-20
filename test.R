@@ -2,9 +2,9 @@ if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
 if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
 
 options(guiToolkit="RGtk2")
-read_form()
 
-read_form<-function(){
+
+read_form <-function(){
   window <- gwindow("elective", visible=FALSE)
   paned <- gpanedgroup(cont = window)
   group <- ggroup(cont = paned, horizontal = FALSE)
@@ -25,3 +25,4 @@ read_form<-function(){
   })
   visible(window) <- TRUE
 }
+read_form()
