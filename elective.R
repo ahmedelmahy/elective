@@ -1,340 +1,251 @@
-#data entry and removing dublicated rows.
-#just used  cat try.R
-##import csv file
-options(warn=-1)  #to return it back use options(warn=0)
-cat('Hi, This program is written using R to help assign every
-student to his elective. R is used by scientists and medical
-researchers all over the world. Join us ! 
-This program comes with ABSOLUTELY NO WARRANTY and is
-written by Ahmed Elmahy in 2016; Email: ahmed.elmahy18@yahoo.com.\n\n\n
-I assume you designed the elective Google form exactly
-as I did and downloaded it as csv file from
-    
-     the Responses page. Now you will choose it') #,fill=T)
-readline('press Enter')
-data=read.csv(file.choose(),encoding='UTF-8')
+if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
+if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
 
-cat('Can you show me the folder where you want to save the results?\n ')
-readline('press Enter')
-mainDir=choose.dir()
-subDir='temp'
-dir.create(file.path(mainDir, subDir), showWarnings = FALSE)
-setwd(file.path(mainDir, subDir))
+options(guiToolkit="RGtk2")
+job1()
 
-#idenify the columns
-cat('\n\nWell done. Now I will ask you about the number of 
-students needed for every course.
-Just write the number or write 0 if the course was deleted later
-Or write no if the question is not a course name ')
-readline('press Enter')
-##courses numbers
-d=data
-curz=vector();xideal=vector();work=vector()
-for (u in 1:length(d)){
-  enter=readline(paste(colnames(d)[u],' :'))
-  if (!is.na(as.numeric(enter))){
-    curz=c(curz,colnames(d)[u])
-    xideal=c(xideal,enter);
-    work=c(work,0)
-  }
-}
-names(xideal)=curz;names(work)=curz
-##Identify the ID variable
-cat('Can you show me the question that contains the IDs of the students ?\n\n')
-didylist=colnames(d)[which(!(colnames(d) %in% curz))]
-idname=select.list(didylist,title='Which one of these questions?')
-colnames(data)[colnames(data)==idname]='ID'
-
-
-##Make d and remove the dublicates
-d=data[!rev(duplicated(rev(data$ID))),]
-enteredmore=data$ID[rev(duplicated(rev(data$ID)))]   #report 1
-
-cat(paste('The form you entered contains', dim(data)[1],'entries and after removing
-          dublicates -i.e people who entered more than once I chose their last entry- the 
-          number of people is now', dim(d)[1]))
-
-
-#people to exlude from the elective
-cat('\n\n\nThere is probably a question about spending elective outside egypt
-    I will list to you the other questions.\n')
-readline('press Enter')
-isthere= select.list(c('yes there is a question about elective outside','no'))
-
-#didylist=colnames(d)[which(!(colnames(d) %in% curz))]
-
-if (isthere=='yes there is a question about elective outside'){
-  called=select.list(didylist,title='Which one of these questions?')
-  print(called)
-  cat('\n\nWhich answer to exclude ?')
-  here=select.list(levels(d[,called]),title='Which answer to exclude ?')
-  print(here)
-  outsideids=as.character(d$ID[d[,called]==here])
-  print(outsideids)
-  d=d[d[,called]!=here,]
-  n=length(outsideids)
-  cat(' I now have', dim(d)[1],'students in
-      the memory. As I removed ',n,' students who
-      will take the elective abroad ')
+job1<-function(){
+  window <- gwindow("elective", visible=FALSE)
+  paned <- gpanedgroup(cont = window)
+  group <- ggroup(cont = paned, horizontal = FALSE)
+  glabel("Google Form", cont=group, anchor=c(-1,0))
+  form <- gfilebrowse(cont = group,quote=FALSE)
+  glabel("Save to ...", cont=group, anchor=c(-1,0))
+  saveto <- gfilebrowse('Select a Folder',type='selectdir',cont = group,quote = FALSE)
+  addSpring(group)
+  addSpace(group,20)
+  next1 <- gbutton("Next", cont = group)
+  addHandlerChanged(next1, handler = function(h,...) {
+    formpath<<-svalue(form)
+    wdpath<<-svalue(saveto)
+    if (wdpath!='Select a Folder'){setwd(wdpath)}
+    dat<<-read.csv(formpath,encoding='UTF-8')
+    dispose(window)
+    job2(dat)
+  })
+  visible(window) <- TRUE
 }
 
-
-
-#entering marks and IDs
-cat('\n\n\n.I assume you have a file containing the last year [marks].
-to make things easy,
-you have to copy the students IDs and their corresponding marks.
-What does matter is that every ID line has a corresponding mark line
-    Be careful!') #
-readline('\n\nNow you will paste the students ID of the current year, Press Enter: ') #
-
-##IDs
-samp=sample(1:100000,1)
-#
-
-file=paste(getwd(),'/newid',samp,'.txt',sep='')
-fileConn<-file(file)
-writeLines('',fileConn)
-close(fileConn)
-edit(NULL,file,title='Enter the marks every ID in a line; copy and paste from excel')
-newid=as.numeric(readLines(file))
-
-##marks
-readline('\nAnd now paste their marks, Press Enter: ')
-
-file2=paste(getwd(),'/newmarks',samp,'.txt',sep='')
-fileConn2<-file(file2)
-writeLines('',fileConn2)
-close(fileConn2)
-edit(NULL,file2,title='Enter the marks every mark in a line; copy and paste from excel')
-newmarks=readLines(file2)
-newmarks=newmarks[newmarks!='']
-newmarks[which((is.na(as.numeric(newmarks))))]='0'
-newmarks=as.numeric(newmarks)
-
-newid <- newid[!is.na(newid)]
-newmarks=newmarks[!is.na(newmarks)]
-###make sure
-df=data.frame(newid,newmarks) #akeed mfeesh 7ad btkoon dragto fadya
-#df2<- df[rowSums(is.na(df))<ncol(df),]
-
-newid=df$newid      #previously were df2
-newmarks=df$newmarks
-edit(data.frame(newid,newmarks),title='Do you find every student ID beside his corresponding marks correctly ?')
-
-
-
-###another check
-cat('\nI will pick a random student ID
-    and I will tell you his mark. you revise it and it should be right \n')
-soso=sample(newid,1)
-cat(paste('The marks of the student with ID number', soso, ' are ', 
-       newmarks[which(newid==soso)]))
-readline('\nOnly continue if this is true, to continue Press Enter: ' )
-
-notfound=d$ID[which(!(d$ID %in% newid))]
-cat(paste('\n\n\nAwesome, now I revised students IDs in the form\n and found',length(notfound),
-    'students whose ID is not found in your entries.\n'))
-    
-
-if (length(notfound)>0){
-  cat('\nI will ask you to enter their marks manually\n
-      type 0 if his marks are not available
-      type no if this id isnot included in this elective\n
-      ,(if you see <U+0645> it mean the letter meem)')
-  
-  readline(' press Enter')
-  for (q in 1:length(notfound)){
-    qenter=readline(paste(notfound[q],' :'))
-    if (!is.na(as.numeric(qenter))){
-      newid[length(newid)+q]=as.character(notfound[q])
-      newmarks[length(newmarks)+q]=qenter
+job2=function(dat){
+  dff=data.frame(id='',marks='')
+  marksfile<<-dfedit(dff)
+  marksfile$marks=as.numeric(as.character(marksfile$marks))
+  marksfile$marks[is.na(marksfile$marks)]=0
+  cat('\n\n the number of students per course. write a number or no if what you see is not a course name ')
+  readline('press Enter')
+  d<<-dat
+  curz<<-vector();xideal<<-vector();work<<-vector()
+  for (u in 1:length(d)){
+    enter<<-readline(paste(colnames(d)[u],' :'))
+    if (!is.na(as.numeric(enter))){
+      curz<<-c(curz,colnames(d)[u])
+      xideal<<-c(xideal,enter);
+      work<<-c(work,0)
     }
-    if(is.na(as.numeric(qenter))){
-      d=d[-which(notfound[q]== d$ID),]
-        }
+  }
+  names(xideal)<<-curz;names(work)<<-curz
+  cat('Choose the question containing the IDs\n\n')  ##Identify the ID variable
+  didylist<<-colnames(d)[which(!(colnames(d) %in% curz))]
+  idname<<-select.list(didylist,title='Which one ?')
+  colnames(dat)[colnames(dat)==idname]<<-'ID'
+  d<<-dat[!rev(duplicated(rev(dat$ID))),]
+  #enteredmore<<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
+  prevd<<-job3(curz)
+  #d<<-job4(d,prevd)
+  #d<<-job5(d,marksfile$id,marksfile$marks,xideal,work,curz)
+  #d<<-entry_mistake_checker(d)
+  #plot2<<-job6(d,xideal,work,curz)
+  
+}
+
+job3=function(curz){
+  dffg=data.frame(id='',prev1='',prev2='',prev3='')
+  prevd<<-dfedit(dffg)
+  trim <- function (x) gsub("^\\s+|\\s+$", "", x) #define the trim function
+  clean<-function(x){
+    gsub("[[:punct:]]", "", tolower(x))
+  } 
+  #prevd<<-data.frame(id,a,b,c)
+  prevdarch=prevd
+  prevd=prevdarch
+  prevd[,2]=clean(trim(as.character(prevd[,2])));prevd[,3]=clean(trim(as.character(prevd[,3])));prevd[,4]=clean(trim(as.character(prevd[,4])))
+  #prevd=tolower(prevd[,2])
+  collected=c(prevd[,2],prevd[,3],prevd[,4])
+  #prevuni=tolower(collected)
+  #prevuni=gsub("[[:punct:]]", "", prevuni)
+  prevuni=(unique(collected))
+  for (i in 1: length(curz)){
+    cat(paste(curz[i],'\n'))
+    right=select.list(sort(prevuni),multiple=T,graphics = T)
+    if (length(right)>0){
+      prevd[,2][which(prevd[,2] %in% right)]=curz[i]
+      prevd[,3][which(prevd[,3] %in% right)]=curz[i]
+      prevd[,4][which(prevd[,4] %in% right)]=curz[i]
+      prevuni=prevuni[-which(prevuni %in% right)]
+    }
+  }
+  prevd[,2][-which(prevd[,2] %in% curz)]=NA
+  prevd[,3][-which(prevd[,3] %in% curz)]=NA
+  prevd[,4][-which(prevd[,4] %in% curz)]=NA
+  return(prevd)
+}
+
+job4=function(d,prevd){
+  d$ID=as.character(d$ID)
+  prevd[,1]=as.character(prevd[,1])
+  prevd[,2]=as.character(prevd[,2])
+  prevd[,3]=as.character(prevd[,3])
+  prevd[,4]=as.character(prevd[,4])
+  
+  for (k in which(d$ID %in% prevd$id)){
+    d[d$ID==k,which(colnames(d[d$ID==k,]) %in% prevd$prev1[prevd$id==k])]=0
+    d[d$ID==k,which(colnames(d[d$ID==k,]) %in% prevd$prev2[prevd$id==k])]=0
+    d[d$ID==k,which(colnames(d[d$ID==k,]) %in% prevd$prev3[prevd$id==k])]=0
+  }
+  return(d)
+}
+
+
+
+
+
+
+
+job5=function(d,newid,newmarks,xideal,work,curz){
+  newid=marksfile$id;newmarks=marksfile$marks
+  notfound=d$ID[which(!(d$ID %in% newid))]
+  if (length(notfound)>0){
+    cat('\n The following students filled the form\n
+        and their marks are not found enter the marks, 0 or no to exclude them\n
+        ,(if you see <U+0645> it mean the letter meem)')
+    readline(' press Enter')
+    for (q in 1:length(notfound)){
+      qenter=readline(paste(notfound[q],' :'))
+      if (!is.na(as.numeric(qenter))){
+        newid[length(newid)+q]=as.character(notfound[q])
+        newmarks[length(newmarks)+q]=qenter
+      }
+      if(is.na(as.numeric(qenter))){
+        d<<-d[-which(notfound[q]== d$ID),]
       }
     }
+  }
+  
+  
+  job5sub1(d,xideal,work,curz,newid,newmarks)
+  
+  
+  
+  #d=d[order(as.numeric(d$markss),decreasing =T),]
+  #return(d)
+}
+
+job5sub1=function(d,xideal,work,curz,newid,newmarks){
+  cat('\n\n\nElective Outside\n')
+  readline('press Enter')
+  isthere= select.list(c('yes there is a question about elective outside','no'))
+  if (isthere=='yes there is a question about elective outside'){
+    called=select.list(didylist,title='Which one of these questions?')
+    cat('\n\nWhich answer to exclude ?')
+    here=select.list(levels(d[,called]),title='Which answer to exclude ?')
+    outsideids=as.character(d$ID[d[,called]==here])
+    print(outsideids)
+    colnames(d)[colnames(d)==called]='outside'
+    edit(d)
+    d$outside=as.character(d$outside)
+    d$outside[d$outside!=here]=rep(0,length(which(d$outside!=here)))
+    d$outside[d$outside==here]=rep(1,length(which(d$outside==here)))
+    d[d$outside==1,curz]=0
     
-    
+    curz[length(curz)+1]='outside'
+    xideal[length(curz)]=1000;names(xideal)=curz
+    work[length(curz)]=0;names(work)=curz
+    #,curz]
+    #d=d[d[,called]!=here,]
+    #n=length(outsideids)
+    #cat(' I now have', dim(d)[1],'students in
+    #  the memory. As I removed ',n,' students who
+    #  will take the elective abroad ')
+  }
+  request=which(!newid %in% d$ID )
+  
+  requested<<-requestdecision(request)
+  
+  
+}
+a=rep(0,length(curz))
+if (length(requested)>0){
+  
+  data.frame(ID=requested,)
+  d2$ID=c(d2$ID,requested)
+}
 
-
-
-#together students
-cat('Now students who want to be together, You will enter their ids\n
-    separated by a comma. Ids you enter will be arranged\n by their results and 
-    I will simpy give all the IDs you enter the mean mark\n and the 
-    same choices as the latest one , \nBecareful! and do not enter spaces at all ')  #what if they were at the end of a choice
-readline('press Enter to start ')
-cat('\nwhen you finish ekteb done\n\n')
 
 d$markss=rep(0,dim(d)[1])
 for (lolo in 1: length(newid)){
   d$markss[which(d$ID == newid[lolo])]  =newmarks[lolo]
 }
+}
 
 
-
-while (TRUE){
-  mary=readline('Enter a couple separated by a comma then Enter: ')
-  if (mary=='done'){
-    break
+entry_mistake_checker=function(d){
+  num=which(colnames(d)%in% curz)
+  for (i in 1: length(curz)){
+    mistake=which(as.numeric(as.character(d[,num[i]]))>length(curz)| is.na(as.numeric(as.character(d[,num[i]]))) )
+    d[,num[i]][mistake]=0
+    d[,num[i]]=as.numeric(as.character(d[,num[i]]))
   }
   
-  tsplit=strsplit(mary,',')[[1]]
-  didyrows=which(d$ID %in% tsplit)      #the program assumes both in the dataset otherwise 
-  #the program can't find the other one!
-  newresults=mean(as.numeric(d$markss[didyrows][!is.na(as.numeric(d$markss[didyrows]))]))
-  d$markss[didyrows]= newresults
-  repeatedids=d$ID[didyrows]
-  d[didyrows,]=d[rep(max(didyrows),length(didyrows)),]
-  d$ID[didyrows]=repeatedids
+  for (i in  num){
+    p=sum(d[i,num])
+    if (p==0){
+      d=d[-i,]
+    }
+  }
 }
 
-
-
-#now sorting
-
-cat('\n\n\n Now I sorted students based on their marks.')
-
-
-
-
-d=d[order(as.numeric(d$markss),decreasing =T),]
-readline('Press Enter')
-cat('Let us make sure I am right')
-cat(paste('\nThe student with ID ', d$ID[1],' hwa el awal 3la eldof3a aw el round\n'))
-readline('to continue Press Enter')
-
-
-#plot2=data.frame(id=character(dim(d)[1]),x=numeric(dim(d)[1]),
- #                choice=character(dim(d)[1]));colnames(plot2)=c('id','x','choice')
-num=which(colnames(d)%in% curz)
-for (i in 1: length(curz)){
- 
-  mistake=which(as.numeric(as.character(d[,num[i]]))>length(curz)| is.na(as.numeric(as.character(d[,num[i]]))) )
-  d[,num[i]][mistake]=0
-  d[,num[i]]=as.numeric(as.character(d[,num[i]]))
-}
-
-for (i in  num){
-  p=sum(d[i,num])
-  if (p==0){
-    d=d[-i,]
-  }
-  }
-
-puma=(which(colnames(d)%in%curz))
-id=vector();mark=id;number=id;choice=id
-
-ii=0
-for (i in 1:dim(d)[1]){
-  s=sort(d[i,][puma])
-  for (j in 1: length(s) ){
-    ost=names(s[j])
-    if (as.numeric(s[j])>0) {
-      if (   work[which(curz==ost)]    < as.numeric(xideal [which(curz==ost)])   ){   
-        ii=ii+1
-        print(paste(d$ID[i],ost))
-        
-        id[ii]= as.character(d$ID[i])
-        mark[ii]=d$markss[i]
-        number[ii]=as.numeric(s[j])
-        choice[ii]=ost
-        work[which(curz==ost)]=(work[which(curz==ost)])+1
-        break
+requestdecision=function(request){
+  if (length(request)>0){
+    cat('\nThe following students did not fill the form\n
+        Are they with us? enter yes or no')
+    readline(' press Enter')
+    requested=vector()  
+    u=0
+    for (p in 1:length(request)){
+      penter=readline(paste(request[p],' :'))
+      if (penter=='yes'){
+        u=u+1
+        requested[u]=request[p]
       }
-  }
-}}
+    }}
+  return(requested)}
 
-plot2=data.frame(id,mark,number,choice)
-
-setwd(mainDir)
-plot1=work;names(plot1)=curz
-
-for (i in 1:dim(d)[1]){
+job6=function(d,work,xideal,curz){
+  puma=(which(colnames(d)%in%curz))
+  id=vector();mark=id;number=id;choice=id
+  
+  ii=0
+  for (i in 1:dim(d)[1]){
     s=sort(d[i,][puma])
     for (j in 1: length(s) ){
       ost=names(s[j])
-      
-    plot1[which(curz==ost)]= plot1[which(curz==ost)]+length(s)+1-j
-    
-  }
+      if (as.numeric(s[j])>0) {
+        if (   work[which(curz==ost)]    < as.numeric(xideal [which(curz==ost)])   ){   
+          ii=ii+1
+          print(paste(d$ID[i],ost))
+          
+          id[ii]= as.character(d$ID[i])
+          mark[ii]=d$markss[i]
+          number[ii]=as.numeric(s[j])
+          choice[ii]=ost
+          work[which(curz==ost)]=(work[which(curz==ost)])+1
+          break
+        }
+      }
+    }}
+  plot2=data.frame(id,mark,number,choice)
+  return(plot2)
 }
 
-barplot(sort(plot1,decreasing = F),col= terrain.colors(length(plot1),1),horiz = T,legend=T,
-        yaxt='n', ann=FALSE, main='Graph1:\n Courses arranged by students preferences',
-        sub='Courses with small bars are courses that students dislike and should be
-        either improved or deleted',legend.text=T,args.legend=list(x='bottomright'))
-
-
-#report1
-txt1=paste ('the following IDs has filled the form more than once\n\n\n  ',paste(enteredmore,collapse=','))
-
-fileConn<-file("report1.txt")
-writeLines(txt1, fileConn)
-close(fileConn)
-
-
-
-#report2
-zeromark=as.character(d$ID[d$markss==0])
-txt2=paste('the following IDs were give zero marks and distributed randomly\n\n\n',
-           paste(zeromark,collapse=','))
-
-fileConn<-file("report2.txt")
-writeLines(txt2, fileConn)
-close(fileConn)
-
-
-
-#report3
-
-write.csv(plot2, file = "report3.csv")
-
-
-#report4
-dff=data.frame(as.character(plot2$id),as.character(plot2$choice));colnames(dff)=c('id','choice')
-
-#dff=dff[order(as.character(dff$choice)),]
-
-for (i in 1:length(curz)){
-  dffid=dff$id[which(dff$choice==curz[i])]
-  cu=curz[i]
-  fileConn<-file(paste(cu,"report4.txt",collapse=''))
-  txt4=paste('The elective course   ',
-             cu,
-             ' has the following students IDs: \n\n\n\n',
-             paste(dffid, collapse=','))
-  writeLines(txt4, fileConn)
-  close(fileConn)
-}
-
-
-#report5
-
-#didntfill=which(!(newid %in% c(as.character(d$ID),outsideids)))
-didntfill=which(!(newid %in% as.character(d$ID)))
-didntfill=didntfill[-which(didntfill %in% as.numeric(outsideids))]
-txt3=paste('the following IDs did not fill the form\n\n\n',
-           paste(didntfill,collapse=','))
-fileConn<-file("report5.txt")
-writeLines(txt3, fileConn)
-close(fileConn)
-
-
-#report6 free places
-freeplaces=as.numeric(xideal)-as.numeric(work)
-freedf=data.frame(curz,freeplaces)
-write.csv(freedf, file = "report6.csv")
-
-
-
-#report7 
-plot2a=plot2[which(!is.na(as.numeric(as.character(plot2$id)))),]
-plot2b=plot2[which(is.na(as.numeric(as.character(plot2$id)))),]
-plot2a=plot2a[order(as.numeric(as.character(plot2a$id))),]
-plot3=rbind(plot2a,plot2b)
-write.csv(plot3, file = "report7.csv")
 
 
