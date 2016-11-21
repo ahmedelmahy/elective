@@ -1,8 +1,7 @@
 if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
 if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
-
+options(show.error.locations = TRUE)
 options(guiToolkit="RGtk2")
-read_form()  #I will put it at the end of the file
 
 read_form<-function(){
   window <- gwindow("elective", visible=FALSE)
@@ -16,10 +15,10 @@ read_form<-function(){
   addSpace(group,20)
   next1 <- gbutton("Next", cont = group)
   addHandlerChanged(next1, handler = function(h,...) {
-    formpath<<-svalue(form)
-    wdpath<<-svalue(saveto)
+    formpath<-svalue(form)
+    wdpath<-svalue(saveto)
     if (wdpath!='Select a Folder'){setwd(wdpath)}
-    dat<<-read.csv(formpath,encoding='UTF-8')
+    dat<-read.csv(formpath,encoding='UTF-8')
     dispose(window)
     read_marks_and_courses(dat)
   })
@@ -28,43 +27,43 @@ read_form<-function(){
 
 read_marks_and_courses=function(dat){
   dff=data.frame(id='',marks='')
-  marksfile<<-dfedit(dff)
+  marksfile<-dfedit(dff)
   marksfile$marks=as.numeric(as.character(marksfile$marks))
   marksfile$marks[is.na(marksfile$marks)]=0
   cat('\n\n the number of students per course. write a number or no if what you see is not a course name ')
   readline('press Enter')
-  d<<-dat
-  curz<<-vector();xideal<<-vector();work<<-vector()
+  d<-dat
+  curz<-vector();xideal<-vector();work<-vector()
   for (u in 1:length(d)){
-    enter<<-readline(paste(colnames(d)[u],' :'))
+    enter<-readline(paste(colnames(d)[u],' :'))
     if (!is.na(as.numeric(enter))){
-      curz<<-c(curz,colnames(d)[u])
-      xideal<<-c(xideal,enter);
-      work<<-c(work,0)
+      curz<-c(curz,colnames(d)[u])
+      xideal<-c(xideal,enter);
+      work<-c(work,0)
     }
   }
-  names(xideal)<<-curz;names(work)<<-curz
+  names(xideal)<-curz;names(work)<-curz
   cat('Choose the question containing the IDs\n\n')  ##Identify the ID variable
-  didylist<<-colnames(d)[which(!(colnames(d) %in% curz))]
-  idname<<-select.list(didylist,title='Which one ?')
-  colnames(dat)[colnames(dat)==idname]<<-'ID'
-  d<<-dat[!rev(duplicated(rev(dat$ID))),]
-  #enteredmore<<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
-  prevd<<-read_prev(curz)
-  d<<-remove_prev(d,prevd)
-  plot2<<-add_marks(d,marksfile$id,marksfile$marks,xideal,work,curz)
-  #plot2<<-job6(d,xideal,work,curz)
+  didylist<-colnames(d)[which(!(colnames(d) %in% curz))]
+  idname<-select.list(didylist,title='Which one ?')
+  colnames(dat)[colnames(dat)==idname]<-'ID'
+  d<-dat[!rev(duplicated(rev(dat$ID))),]
+  #enteredmore<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
+  prevd<-read_prev(curz)
+  d<-remove_prev(d,prevd)
+  plot2<<-add_marks(d,marksfile$id,marksfile$marks,xideal,work,curz,didylist)
+  #plot2<-job6(d,xideal,work,curz)
   return(plot2)
 }
 
 read_prev=function(curz){
   dffg=data.frame(id='',prev1='',prev2='',prev3='')
-  prevd<<-dfedit(dffg)
+  prevd<-dfedit(dffg)
   trim <- function (x) gsub("^\\s+|\\s+$", "", x) #define the trim function
   clean<-function(x){
     gsub("[[:punct:]]", "", tolower(x))
   } 
-  #prevd<<-data.frame(id,a,b,c)
+  #prevd<-data.frame(id,a,b,c)
   prevd[,2]=clean(trim(as.character(prevd[,2])));prevd[,3]=clean(trim(as.character(prevd[,3])));prevd[,4]=clean(trim(as.character(prevd[,4])))
   #prevd=tolower(prevd[,2])
   collected=c(prevd[,2],prevd[,3],prevd[,4])
@@ -108,7 +107,7 @@ remove_prev=function(d,prevd){
 
 
 
-add_marks=function(d,newid,newmarks,xideal,work,curz){
+add_marks=function(d,newid,newmarks,xideal,work,curz,didylist){
   #newid=as.character(marksfile$id);newmarks=as.character(marksfile$marks)
   notfound=d$ID[which(!(d$ID %in% newid))]
   if (length(notfound)>0){
@@ -124,21 +123,21 @@ add_marks=function(d,newid,newmarks,xideal,work,curz){
         newmarks[length(newmarks)+q-w]=qenter
       }
       if(is.na(as.numeric(qenter))){
-        d<<-d[-which(notfound[q]== d$ID),]
+        d<-d[-which(notfound[q]== d$ID),]
         w=w+1
       }
     }
   }
   
-  d=check_outside(d,xideal,work,curz,newid,newmarks)
-  d<<-add_marks_to_form(d,newid,newmarks)
+  d=check_outside(d,xideal,work,curz,newid,newmarks,didylist)
+  d<-add_marks_to_form(d,newid,newmarks)
   
-  d<<-entry_mistake_checker(d)
-  plot2<<-distribute_courses(d,work,xideal,curz)
+  d<-entry_mistake_checker(d,curz)
+  plot2<-distribute_courses(d,work,xideal,curz)
   return(plot2)
 }
 
-check_outside=function(d,xideal,work,curz,newid,newmarks){
+check_outside=function(d,xideal,work,curz,newid,newmarks,didylist){
   cat('\n\n\nElective Outside\n')
   readline('press Enter')
   isthere= select.list(c('yes there is a question about elective outside','no'))
@@ -167,27 +166,31 @@ check_outside=function(d,xideal,work,curz,newid,newmarks){
   }
   
   request=newid[which(!newid %in% d$ID )]
-  requested<<-request_ids_to_add(request)
-  d<<-add_ids(d,requested,curz)
+  requested<-request_ids_to_add(request)
+  d <-add_ids(d,requested,curz)
   return(d)
   }
 
 add_ids=function(d,requested,curz){
   a=rep(length(curz),dim(d)[2]*length(requested))
   mat=matrix(a,nrow=length(requested))
-  add_d=as.data.frame(mat);colnames(add_d)=colnames(d)
+  add_d<-as.data.frame(mat);colnames(add_d)=colnames(d)
+  print(dim(add_d))
   add_d$ID=requested
-  d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.integer)
+  d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.numeric)
   d=rbind(d,add_d)
+  print(dim(d))
   return(d)
   }
 
-d2=d
+
 add_marks_to_form=function(d,newid,newmarks){
   d$markss=rep(0,dim(d)[1])
   for (lolo in 1: length(newid)){
-     d$markss[which(d$ID == newid[lolo])]  =newmarks[lolo]
+     d$markss[which(d$ID == newid[lolo])] =newmarks[lolo]
   }
+  d2<-d
+  d<-d
   return(d)
 }
 #a=rep(0,length(curz))
@@ -216,7 +219,7 @@ entry_mistake_checker=function(d,curz){
   #  if (p==0){
   #    d=d[-i,]
   #  }
-  d<<-order_by_marks(d)
+  d<-order_by_marks(d)
   return(d)
 }
 
@@ -248,7 +251,7 @@ request_ids_to_add=function(request){
 distribute_courses=function(d,work,xideal,curz){
   puma=(which(colnames(d)%in%curz))
   id=vector();mark=id;number=id;choice=id
-  
+  edit(d)
   ii=0
   for (i in 1:dim(d)[1]){
     s=sort(d[i,][puma])
@@ -268,9 +271,9 @@ distribute_courses=function(d,work,xideal,curz){
         }
       }
     }}
-  plot2<<-data.frame(id,mark,number,choice)
+  plot2<-data.frame(id,mark,number,choice)
   return(plot2)
 }
 
-
+read_form()  
 
