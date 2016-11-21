@@ -1,5 +1,7 @@
 if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
+if (!require('gWidgetsRGtk2')) install.packages('gWidgetsRGtk2'); library('gWidgetsRGtk2')
 if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
+
 options(show.error.locations = TRUE)
 options(guiToolkit="RGtk2")
 
