@@ -52,10 +52,9 @@ read_marks_and_courses=function(dat){
   #enteredmore<<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
   prevd<<-read_prev(curz)
   d<<-remove_prev(d,prevd)
-  d<<-add_marks(d,marksfile$id,marksfile$marks,xideal,work,curz)
-  #d<<-entry_mistake_checker(d)
+  plot2<<-add_marks(d,marksfile$id,marksfile$marks,xideal,work,curz)
   #plot2<<-job6(d,xideal,work,curz)
-  
+  return(plot2)
 }
 
 read_prev=function(curz){
@@ -110,7 +109,7 @@ remove_prev=function(d,prevd){
 
 
 add_marks=function(d,newid,newmarks,xideal,work,curz){
-  newid=as.character(marksfile$id);newmarks=as.character(marksfile$marks)
+  #newid=as.character(marksfile$id);newmarks=as.character(marksfile$marks)
   notfound=d$ID[which(!(d$ID %in% newid))]
   if (length(notfound)>0){
     cat('\n The following students filled the form\n
@@ -132,11 +131,11 @@ add_marks=function(d,newid,newmarks,xideal,work,curz){
   }
   
   d=check_outside(d,xideal,work,curz,newid,newmarks)
-  add_marks_to_form()
+  d<<-add_marks_to_form(d,newid,newmarks)
   
-  
-  #d=d[order(as.numeric(d$markss),decreasing =T),]
-  #return(d)
+  d<<-entry_mistake_checker(d)
+  plot2<<-distribute_courses(d,work,xideal,curz)
+  return(plot2)
 }
 
 check_outside=function(d,xideal,work,curz,newid,newmarks){
@@ -183,6 +182,14 @@ add_ids=function(d,requested,curz){
   return(d)
   }
 
+d2=d
+add_marks_to_form=function(d,newid,newmarks){
+  d$markss=rep(0,dim(d)[1])
+  for (lolo in 1: length(newid)){
+     d$markss[which(d$ID == newid[lolo])]  =newmarks[lolo]
+  }
+  return(d)
+}
 #a=rep(0,length(curz))
 #if (length(requested)>0){
   
@@ -192,27 +199,34 @@ add_ids=function(d,requested,curz){
 
 
 #d$markss=rep(0,dim(d)[1])
-#for (lolo in 1: length(newid)){
-#  d$markss[which(d$ID == newid[lolo])]  =newmarks[lolo]
-#}
+#
 #}
 
 
-entry_mistake_checker=function(d){
-  num=which(colnames(d)%in% curz)
+entry_mistake_checker=function(d,curz){
+  #num=colnames(d)[which(colnames(d)%in% curz)]
   for (i in 1: length(curz)){
-    mistake=which(as.numeric(as.character(d[,num[i]]))>length(curz)| is.na(as.numeric(as.character(d[,num[i]]))) )
-    d[,num[i]][mistake]=0
-    d[,num[i]]=as.numeric(as.character(d[,num[i]]))
+    mistake=which(is.na(as.numeric(as.character(d[,curz[i]]))))  #as.numeric(as.character(d[,curz[i]]))>length(curz)|
+    d[,curz[i]][mistake]=0
+    d[,curz[i]]=as.numeric(as.character(d[,curz[i]]))
   }
-  
-  for (i in  num){
-    p=sum(d[i,num])
-    if (p==0){
-      d=d[-i,]
-    }
-  }
+
+  #for (i in  num){
+  #  p=sum(d[i,num])
+  #  if (p==0){
+  #    d=d[-i,]
+  #  }
+  d<<-order_by_marks(d)
+  return(d)
 }
+
+order_by_marks=function(d){
+  d$markss=as.numeric(d$markss)
+  d=d[order(as.numeric(d$markss),decreasing =T),]
+  return(d)
+}
+
+
 
 request_ids_to_add=function(request){
   if (length(request)>0){
@@ -231,7 +245,7 @@ request_ids_to_add=function(request){
   return(requested)
   }
 
-job6=function(d,work,xideal,curz){
+distribute_courses=function(d,work,xideal,curz){
   puma=(which(colnames(d)%in%curz))
   id=vector();mark=id;number=id;choice=id
   
@@ -254,7 +268,7 @@ job6=function(d,work,xideal,curz){
         }
       }
     }}
-  plot2=data.frame(id,mark,number,choice)
+  plot2<<-data.frame(id,mark,number,choice)
   return(plot2)
 }
 
