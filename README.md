@@ -1,2 +1,4 @@
 #For testing:
 Download the R code and source it. Right click on [here](https://raw.githubusercontent.com/ahmedelmahy/elective/master/elective.R) and choose save link as.
+
+Download the 3 simulation files. Right click on [google form simulation](https://github.com/ahmedelmahy/elective/blob/master/google_form_simulation.csv) and choose save link as and [results file simulation](https://github.com/ahmedelmahy/elective/blob/master/results_file_simulation.xlsx) and [previous elective simulation](https://github.com/ahmedelmahy/elective/blob/master/previous_elective_simulation.xlsx) and copy from them when needed.
