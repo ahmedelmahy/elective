@@ -131,11 +131,9 @@ add_marks=function(d,newid,newmarks,xideal,work,curz,didylist){
     }
   }
   
-  d=check_outside(d,xideal,work,curz,newid,newmarks,didylist)
-  d<-add_marks_to_form(d,newid,newmarks)
-  
-  d<-entry_mistake_checker(d,curz)
-  plot2<-distribute_courses(d,work,xideal,curz)
+  plot2=check_outside(d,xideal,work,curz,newid,newmarks,didylist)
+  #d<-add_marks_to_form(d,newid,newmarks)
+  #plot2<-distribute_courses(d,work,xideal,curz)
   return(plot2)
 }
 
@@ -150,7 +148,7 @@ check_outside=function(d,xideal,work,curz,newid,newmarks,didylist){
     outsideids=as.character(d$ID[d[,called]==here])
     #print(outsideids)
     colnames(d)[colnames(d)==called]='outside'
-    #edit(d)
+    #
     d$outside=as.character(d$outside)
     d$outside[d$outside!=here]=rep(0,length(which(d$outside!=here)))
     d$outside[d$outside==here]=rep(1,length(which(d$outside==here)))
@@ -169,19 +167,29 @@ check_outside=function(d,xideal,work,curz,newid,newmarks,didylist){
   
   request=newid[which(!newid %in% d$ID )]
   requested<-request_ids_to_add(request)
+  
   d <-add_ids(d,requested,curz)
-  return(d)
+  d <-add_marks_to_form(d,newid,newmarks)  
+  plot2=distribute_courses(d,work,xideal,curz)
+  return(plot2)
   }
 
 add_ids=function(d,requested,curz){
   a=rep(length(curz),dim(d)[2]*length(requested))
   mat=matrix(a,nrow=length(requested))
+  
   add_d<-as.data.frame(mat);colnames(add_d)=colnames(d)
   print(dim(add_d))
   add_d$ID=requested
+  add_d$outside=1000  #probably use try
+  #d<-entry_mistake_checker(d,curz)
+  d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.character)
   d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.numeric)
+  d[is.na(d)]=length(curz)
   d=rbind(d,add_d)
   print(dim(d))
+  
+  
   return(d)
   }
 
@@ -191,8 +199,9 @@ add_marks_to_form=function(d,newid,newmarks){
   for (lolo in 1: length(newid)){
      d$markss[which(d$ID == newid[lolo])] =newmarks[lolo]
   }
-  d2<-d
-  d<-d
+  #d2<-d
+  #d<-d
+  d<-order_by_marks(d)
   return(d)
 }
 #a=rep(0,length(curz))
@@ -208,26 +217,27 @@ add_marks_to_form=function(d,newid,newmarks){
 #}
 
 
-entry_mistake_checker=function(d,curz){
+#entry_mistake_checker=function(d,curz){
   #num=colnames(d)[which(colnames(d)%in% curz)]
-  for (i in 1: length(curz)){
-    mistake=which(is.na(as.numeric(as.character(d[,curz[i]]))))  #as.numeric(as.character(d[,curz[i]]))>length(curz)|
-    d[,curz[i]][mistake]=0
-    d[,curz[i]]=as.numeric(as.character(d[,curz[i]]))
-  }
+  #for (i in 1: length(curz)){
+    #mistake=which(is.na(as.numeric(as.character(d[,curz[i]]))))  #as.numeric(as.character(d[,curz[i]]))>length(curz)|
+    #d[,curz[i]][mistake]=0
+    #d[,curz[i]]=as.numeric(as.character(d[,curz[i]]))
+  #}
 
   #for (i in  num){
   #  p=sum(d[i,num])
   #  if (p==0){
   #    d=d[-i,]
   #  }
-  d<-order_by_marks(d)
-  return(d)
-}
+  
+#  return(d)
+#}
 
 order_by_marks=function(d){
   d$markss=as.numeric(d$markss)
   d=d[order(as.numeric(d$markss),decreasing =T),]
+  
   return(d)
 }
 
@@ -251,9 +261,9 @@ request_ids_to_add=function(request){
   }
 
 distribute_courses=function(d,work,xideal,curz){
-  puma=(which(colnames(d)%in%curz))
+  puma=(which(colnames(d)%in% curz))
   id=vector();mark=id;number=id;choice=id
-  edit(d)
+  
   ii=0
   for (i in 1:dim(d)[1]){
     s=sort(d[i,][puma])
