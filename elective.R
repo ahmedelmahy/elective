@@ -2,7 +2,8 @@ if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
 if (!require('gWidgetsRGtk2')) install.packages('gWidgetsRGtk2'); library('gWidgetsRGtk2')
 if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
 
-options(show.error.locations = TRUE)
+#options(show.error.locations = TRUE)
+options(warn=-1)
 options(guiToolkit="RGtk2")
 
 read_form<-function(){
@@ -53,7 +54,7 @@ read_marks_and_courses=function(dat){
   #enteredmore<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
   prevd<-read_prev(curz)
   d<-remove_prev(d,prevd)
-  plot2<<-add_marks(d,marksfile$id,marksfile$marks,xideal,work,curz,didylist)
+  plot2<<-add_marks(d,as.character(marksfile$id),marksfile$marks,xideal,work,curz,didylist)
   #plot2<-job6(d,xideal,work,curz)
   return(plot2)
 }
@@ -181,14 +182,14 @@ add_ids=function(d,requested,curz){
   add_d<-as.data.frame(mat);colnames(add_d)=colnames(d)
   print(dim(add_d))
   add_d$ID=requested
-  add_d$outside=1000  #probably use try
+  add_d$outside=0  #probably use try
+  
   #d<-entry_mistake_checker(d,curz)
   d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.character)
   d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.numeric)
   d[is.na(d)]=length(curz)
   d=rbind(d,add_d)
-  print(dim(d))
-  
+
   
   return(d)
   }
@@ -284,7 +285,34 @@ distribute_courses=function(d,work,xideal,curz){
       }
     }}
   plot2<-data.frame(id,mark,number,choice)
+  final_report_per_id(plot2)
+  final_report_per_course(plot2)
   return(plot2)
+}
+
+final_report_per_id=function(plot2){
+  plot2a=plot2[which(!is.na(as.numeric(as.character(plot2$id)))),]
+  plot2b=plot2[which(is.na(as.numeric(as.character(plot2$id)))),]
+  plot2a=plot2a[order(as.numeric(as.character(plot2a$id))),]
+  plot3=rbind(plot2a,plot2b)
+  write.csv(plot3, file = "final_report_per_id.csv",row.names = F)
+}
+final_report_per_course=function(plot2){
+  dff=data.frame(as.character(plot2$id),as.character(plot2$choice));colnames(dff)=c('id','choice')
+  #dff=dff[order(as.character(dff$choice)),]
+  curz=names(summary(plot2$choice))
+  for (i in 1:length(curz)){
+    dffid=dff$id[which(dff$choice==curz[i])]
+    cu=curz[i]
+    fileConn<-file(paste(cu,"report.txt",collapse=''))
+    txt4=paste('The elective course   ',
+               cu,
+               ' has the following students IDs: \n\n\n\n',
+               paste(dffid, collapse='\n'))
+    writeLines(txt4, fileConn)
+    close(fileConn)
+  }
+  
 }
 
 read_form()  
