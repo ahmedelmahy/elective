@@ -54,10 +54,16 @@ read_marks_and_courses=function(dat){
   didylist<-colnames(d)[which(!(colnames(d) %in% curz))]
   idname<-select.list(didylist,title='Which one ?')
   colnames(dat)[colnames(dat)==idname]<-'ID'
+  
+  cat('Choose the question containing the names\n\n')  ##Identify the ID variable
+  didylist2<-colnames(d)[which(!(colnames(d) %in% curz))]
+  idid<-select.list(didylist2,title='Which one ?')
+  colnames(dat)[colnames(dat)==idid]<-'originalname'
+  
   d<-dat[!rev(duplicated(rev(dat$ID))),]
   #enteredmore<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
-  prevd<-read_prev(curz)
-  d<-remove_prev(d,prevd)
+  #prevd<-read_prev(curz)
+  #d<-remove_prev(d,prevd)
   plot2<<-add_marks(d,as.character(marksfile$id),marksfile$marks,marksfile$names,xideal,work,curz,didylist)
   #plot2<-job6(d,xideal,work,curz)
   return(plot2)
@@ -148,17 +154,22 @@ check_outside=function(d,xideal,work,curz,newid,newmarks,newnames,didylist){
   isthere= select.list(c('yes there is a question about elective outside','no'))
   if (isthere=='yes there is a question about elective outside'){
     called=select.list(didylist,title='Which one of these questions?')
-    cat('\n\nWhich answer to exclude ?')
-    here=select.list(levels(d[,called]),title='Which answer to exclude ?')
-    outsideids=as.character(d$ID[d[,called]==here])
+    cat('\n\nWhich answer to keep ?')
+    here=select.list(levels(d[,called]),title='Which answer to keep? choose NO')
+    outsideids=as.character(d$ID[d[,called]!=here])
     #print(outsideids)
     colnames(d)[colnames(d)==called]='outside'
     #
+    #d2=d
+    #d=d2
     d$outside=as.character(d$outside)
-    d$outside[d$outside!=here]=rep(0,length(which(d$outside!=here)))
-    d$outside[d$outside==here]=rep(1,length(which(d$outside==here)))
-    d[d$outside==1,curz]=0
+    d$outside[d$outside!=here]=rep(1,length(which(d$outside!=here)))
+    d$outside[d$outside==here]=rep(0,length(which(d$outside==here)))
     
+    d[d$outside==1,curz]=0
+      #as.data.frame(matrix(0,nrow=sum(d$outside==1),ncol=length(curz)))
+
+    #c=curz x=xideal
     curz[length(curz)+1]='outside'
     xideal[length(curz)]=1000;names(xideal)=curz
     work[length(curz)]=0;names(work)=curz
@@ -256,21 +267,24 @@ order_by_marks=function(d){
 request_ids_to_add=function(request){
   if (length(request)>0){
     cat('\nThe following students did not fill the form\n
-        Are they with us? enter yes or no')
+        Are they with us? select all students you want to include')
     readline(' press Enter')
-    requested=vector()  
-    u=0
-    for (p in 1:length(request)){
-      penter=readline(paste(request[p],' :'))
-      if (penter=='yes'){
-        u=u+1
-        requested[u]=request[p]
-      }
-    }}
+    #requested=vector()  
+    #u=0
+    #re=c('1a',2,3)
+    requested=select.list(request,multiple = TRUE,graphics=TRUE)
+    #for (p in 1:length(request)){
+     # penter=readline(paste(request[p],' :'))
+      #if (penter=='yes'){
+      #  u=u+1
+      #  requested[u]=request[p]
+      #}}
+  }
   return(requested)
   }
 
 distribute_courses=function(d,work,xideal,curz){
+  d$outside[d$outside>1]=0 #work around as some were 12
   puma=(which(colnames(d)%in% curz))
   id=vector();mark=id;number=id;choice=id;namess=id
   ii=0
@@ -287,7 +301,9 @@ distribute_courses=function(d,work,xideal,curz){
           mark[ii]=d$markss[i]
           number[ii]=as.numeric(s[j])
           choice[ii]=ost
-          namess[ii]=d$namess[i]
+          if (!is.na(d$namess[i])){namess[ii]=d$namess[i]}
+          if (is.na(d$namess[i])){namess[ii]=paste('**',d$originalname[i])}
+          
           #namees[ii]
           work[which(curz==ost)]=(work[which(curz==ost)])+1
           break
@@ -295,6 +311,45 @@ distribute_courses=function(d,work,xideal,curz){
       }
     }}
   plot2<-data.frame(id,namess,mark,number,choice)
+  #----------------------------------------------
+  ##
+  plot1=rep(0,length(curz));names(plot1)=curz
+  d2=d
+  d2[,puma][d2[,puma]>length(puma)]=length(puma)
+  d2[,puma][d2[,puma]==0]=length(puma)
+  for (i in 1:dim(d2)[1]){
+    #i=1
+    s=sort(d2[i,][puma])
+    for (j in 1: length(s) ){
+      #j=5
+      ost=names(s[j])
+      plot1[which(curz==ost)]= plot1[which(curz==ost)]+length(s)-s[1,j] #+1-j
+    }
+  }
+  pdf('A statistical report.pdf')
+  #--------------
+  plot(0:10, type = "n", xaxt="n", yaxt="n", bty="n", xlab = "", ylab = "")
+  text(5, 8, "A statistical report") 
+  text(5,6,"To include research questions")
+  text(5, 5, "that aim to survey or test")
+  text(5, 4, "a specific hypothesis for improving the")
+  text(5, 3, "elective courses please contact me:")
+  text(5, 2, "elmahy2005@gmail.com; 01016234359")
+  #----
+  barplot(sort(plot1,decreasing = F),col= terrain.colors(length(plot1),1),horiz = T,legend=T,
+          yaxt='n', ann=FALSE, main='Graph1:\n Courses arranged by students preferences',
+          sub='Courses with small bars are courses that students dislike and should be
+        either improved or deleted',legend.text=T,args.legend=list(x='bottomright'))
+  
+  #----------------------
+  hist(plot2$mark,breaks=dim(plot2)[1]/8,main='A histogram of the marks of the students involved',col='blue3',xlab='Marks')
+  #------
+  par(mar = c(13, 4, 4, 2) + 0.1,cex.axis=.9)
+  boxplot(plot2$mark~plot2$choice,col='green',main='A boxplot that presents the relation between marks and choices',las=2)
+
+  dev.off()
+  ##
+  #-------------------------------
   final_report_per_id(plot2)
   final_report_per_course(plot2)
   Sys.setlocale("LC_CTYPE","English_United States.1252")

@@ -16,6 +16,7 @@ this is also useful
 https://www.datascienceriot.com/how-to-link-r-studio-to-your-github-account/kris/
 
 
+<<<<<<< HEAD
 I used the email elmahy2005@gmail.com
 and the user.name ahmedelmahy
 
@@ -23,3 +24,7 @@ I did it for subsequent projects
 
 in the case of  Permission denied (publickey).
 copy the root/.ssh/Just copy your /root/.ssh/id_rsa.pub content as new github SSH key
+=======
+#the next time 
+I made the prrepository first on github then followed these steps from the shell of the Rstudio
+>>>>>>> 4948c348296667e281a1dc2f0e026439196ee40e
