@@ -1,8 +1,9 @@
 if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
 if (!require('gWidgetsRGtk2')) install.packages('gWidgetsRGtk2'); library('gWidgetsRGtk2')
 if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
+if (!require('ReporteRs')) install.packages('ReporteRs'); library('ReporteRs')
 
-#options(show.error.locations = TRUE)
+options(show.error.locations = TRUE)
 options(warn=-1)
 options(guiToolkit="RGtk2")
 
@@ -29,8 +30,11 @@ read_form<-function(){
 }
 
 read_marks_and_courses=function(dat){
-  dff=data.frame(id='',marks='')
-  marksfile<-dfedit(dff)
+  #dff=data.frame(id='',marks='')
+  #marksfile<-dfedit(dff)
+  markslink="https://docs.google.com/spreadsheets/d/1_P1IaWKQp5M478r46NQrao5v-vGeylYnB1cf9lQROrk/pub?output=csv"
+  marksfile<-read.csv(markslink,encoding='UTF-8')
+  colnames(marksfile)=c('id','names','marks')
   marksfile$marks=as.numeric(as.character(marksfile$marks))
   marksfile$marks[is.na(marksfile$marks)]=0
   cat('\n\n the number of students per course. write a number or no if what you see is not a course name ')
@@ -54,7 +58,7 @@ read_marks_and_courses=function(dat){
   #enteredmore<-unique(dat$ID[rev(duplicated(rev(dat$ID)))])   #report 1 #added unique
   prevd<-read_prev(curz)
   d<-remove_prev(d,prevd)
-  plot2<<-add_marks(d,as.character(marksfile$id),marksfile$marks,xideal,work,curz,didylist)
+  plot2<<-add_marks(d,as.character(marksfile$id),marksfile$marks,marksfile$names,xideal,work,curz,didylist)
   #plot2<-job6(d,xideal,work,curz)
   return(plot2)
 }
@@ -110,7 +114,7 @@ remove_prev=function(d,prevd){
 
 
 
-add_marks=function(d,newid,newmarks,xideal,work,curz,didylist){
+add_marks=function(d,newid,newmarks,newnames,xideal,work,curz,didylist){
   #newid=as.character(marksfile$id);newmarks=as.character(marksfile$marks)
   notfound=d$ID[which(!(d$ID %in% newid))]
   if (length(notfound)>0){
@@ -132,13 +136,13 @@ add_marks=function(d,newid,newmarks,xideal,work,curz,didylist){
     }
   }
   
-  plot2=check_outside(d,xideal,work,curz,newid,newmarks,didylist)
+  plot2=check_outside(d,xideal,work,curz,newid,newmarks,newnames,didylist)
   #d<-add_marks_to_form(d,newid,newmarks)
   #plot2<-distribute_courses(d,work,xideal,curz)
   return(plot2)
 }
 
-check_outside=function(d,xideal,work,curz,newid,newmarks,didylist){
+check_outside=function(d,xideal,work,curz,newid,newmarks,newnames,didylist){
   cat('\n\n\nElective Outside\n')
   readline('press Enter')
   isthere= select.list(c('yes there is a question about elective outside','no'))
@@ -167,10 +171,11 @@ check_outside=function(d,xideal,work,curz,newid,newmarks,didylist){
   }
   
   request=newid[which(!newid %in% d$ID )]
+  request=request[!is.na(request)]
   requested<-request_ids_to_add(request)
   
   d <-add_ids(d,requested,curz)
-  d <-add_marks_to_form(d,newid,newmarks)  
+  d <-add_marks_to_form(d,newid,newmarks,newnames)  
   plot2=distribute_courses(d,work,xideal,curz)
   return(plot2)
   }
@@ -182,8 +187,9 @@ add_ids=function(d,requested,curz){
   add_d<-as.data.frame(mat);colnames(add_d)=colnames(d)
   print(dim(add_d))
   add_d$ID=requested
+  if (length(add_d)<length(d)){
   add_d$outside=0  #probably use try
-  
+  }
   #d<-entry_mistake_checker(d,curz)
   d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.character)
   d[which(colnames(d)%in%curz)]=sapply(d[which(colnames(d)%in%curz)],as.numeric)
@@ -195,10 +201,13 @@ add_ids=function(d,requested,curz){
   }
 
 
-add_marks_to_form=function(d,newid,newmarks){
+add_marks_to_form=function(d,newid,newmarks,newnames){
   d$markss=rep(0,dim(d)[1])
+  d$namess=rep('name!',dim(d)[1])
   for (lolo in 1: length(newid)){
      d$markss[which(d$ID == newid[lolo])] =newmarks[lolo]
+     d$namess[which(d$ID == newid[lolo])] =as.character(newnames[lolo])
+     
   }
   #d2<-d
   #d<-d
@@ -263,8 +272,7 @@ request_ids_to_add=function(request){
 
 distribute_courses=function(d,work,xideal,curz){
   puma=(which(colnames(d)%in% curz))
-  id=vector();mark=id;number=id;choice=id
-  
+  id=vector();mark=id;number=id;choice=id;namess=id
   ii=0
   for (i in 1:dim(d)[1]){
     s=sort(d[i,][puma])
@@ -279,14 +287,17 @@ distribute_courses=function(d,work,xideal,curz){
           mark[ii]=d$markss[i]
           number[ii]=as.numeric(s[j])
           choice[ii]=ost
+          namess[ii]=d$namess[i]
+          #namees[ii]
           work[which(curz==ost)]=(work[which(curz==ost)])+1
           break
         }
       }
     }}
-  plot2<-data.frame(id,mark,number,choice)
+  plot2<-data.frame(id,namess,mark,number,choice)
   final_report_per_id(plot2)
   final_report_per_course(plot2)
+  Sys.setlocale("LC_CTYPE","English_United States.1252")
   return(plot2)
 }
 
@@ -295,24 +306,58 @@ final_report_per_id=function(plot2){
   plot2b=plot2[which(is.na(as.numeric(as.character(plot2$id)))),]
   plot2a=plot2a[order(as.numeric(as.character(plot2a$id))),]
   plot3=rbind(plot2a,plot2b)
-  write.csv(plot3, file = "final_report_per_id.csv",row.names = F)
+  Sys.setlocale("LC_CTYPE","arabic")
+  write.csv(plot3, file = "final_report_per_id.csv",row.names = F,fileEncoding='UTF-8')
 }
 final_report_per_course=function(plot2){
-  dff=data.frame(as.character(plot2$id),as.character(plot2$choice));colnames(dff)=c('id','choice')
+  dff=data.frame(as.character(plot2$id),as.character(plot2$namess),as.character(plot2$choice));colnames(dff)=c('id','name','choice')
   #dff=dff[order(as.character(dff$choice)),]
   curz=names(summary(plot2$choice))
+  doc<-docx()
+  doc2<-bsdoc()
   for (i in 1:length(curz)){
     dffid=dff$id[which(dff$choice==curz[i])]
+    dffname=dff$name[which(dff$choice==curz[i])]
     cu=curz[i]
-    fileConn<-file(paste(cu,"report.txt",collapse=''))
+    fileConn<-file(paste(cu,"report.txt",collapse=''),encoding='UTF-8')
     txt4=paste('The elective course   ',
                cu,
                ' has the following students IDs: \n\n\n\n',
-               paste(dffid, collapse='\n'))
+               paste(dffid,',',dffname, collapse='\n'))
     writeLines(txt4, fileConn)
     close(fileConn)
+    options( "ReporteRs-fontsize" = 12,
+             "ReporteRs-default-font" = "Arial")
+    ldoc=length(dffid)
+    dfdoc=data.frame(index=1:ldoc,dffname,dffid)
+    flex<-FlexTable(dfdoc,header.columns=F,body.par.props = parCenter(),
+                    body.cell.props=cellProperties(text.direction = "tbrl"))
+    flex2<-FlexTable(dfdoc,header.columns=F,body.par.props = parCenter(),
+                    body.cell.props=cellProperties(text.direction = "tbrl"))
+    flex<-setFlexTableWidths(flex,width=c(1,4,2))
+    flex2<-setFlexTableWidths(flex2,width=c(1,4,2))
+    flex=addHeaderRow(flex,c('index','name','id'),first=T,
+                      par.properties=parCenter(),
+                      cell.properties=cellProperties(border.left.style="none",
+                                                     border.right.style="none",border.bottom.style="none"))
+    flex2=addHeaderRow(flex2,c('index','name','id'),first=T,
+                      par.properties=parCenter(),
+                      cell.properties=cellProperties(border.left.style="none",
+                                                     border.right.style="none",border.bottom.style="none"))
+    
+    doc <- addParagraph(doc, pot(paste(cu,'\n','number of the students is ',ldoc,'\n',collapse=''),textProperties(font.weight = "bold")),
+                        par.properties= parProperties(text.align = "center"))
+    
+    doc2 <- addParagraph(doc2, pot(paste(cu,'\n','number of the students is ',ldoc,'\n',collapse=''),textProperties(font.weight = "bold")),
+                        par.properties= parProperties(text.align = "center"))
+    
+    doc<-addFlexTable(doc,flex)
+    doc2<-addFlexTable(doc2,flex2)
+    doc <- addPageBreak(doc)
+    #doc2 <- addPageBreak(doc2)
   }
-  
+  writeDoc(doc,file= "final report.docx")
+  writeDoc(doc2,file= 'final report.html')
 }
 
 read_form()  

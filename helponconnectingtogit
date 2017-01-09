@@ -14,3 +14,12 @@ my terminal is : /usr/bin/lxterminal
 
 this is also useful
 https://www.datascienceriot.com/how-to-link-r-studio-to-your-github-account/kris/
+
+
+I used the email elmahy2005@gmail.com
+and the user.name ahmedelmahy
+
+I did it for subsequent projects
+
+in the case of  Permission denied (publickey).
+copy the root/.ssh/Just copy your /root/.ssh/id_rsa.pub content as new github SSH key
