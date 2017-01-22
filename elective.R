@@ -2,10 +2,13 @@ if (!require('gWidgets')) install.packages('gWidgets'); library('gWidgets')
 if (!require('gWidgetsRGtk2')) install.packages('gWidgetsRGtk2'); library('gWidgetsRGtk2')
 if (!require('RGtk2Extras')) install.packages('RGtk2Extras'); library('RGtk2Extras')
 if (!require('ReporteRs')) install.packages('ReporteRs'); library('ReporteRs')
-
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+if (!require('gridExtra')) install.packages('gridExtra'); library('gridExtra')
+if (!require('grid')) install.packages('grid'); library('grid')
 options(show.error.locations = TRUE)
 options(warn=-1)
 options(guiToolkit="RGtk2")
+
 
 read_form<-function(){
   window <- gwindow("elective", visible=FALSE)
@@ -125,7 +128,7 @@ add_marks=function(d,newid,newmarks,newnames,xideal,work,curz,didylist){
   notfound=d$ID[which(!(d$ID %in% newid))]
   if (length(notfound)>0){
     cat('\n The following students filled the form\n
-        and their marks are not found enter the marks, 0 or no to exclude them\n
+        and their marks are not found enter the marks, 0 to randommly distribute them, or no to exclude them\n
         ,(if you see <U+0645> it mean the letter meem)')
     readline(' press Enter')
     w=0
@@ -284,7 +287,7 @@ request_ids_to_add=function(request){
   }
 
 distribute_courses=function(d,work,xideal,curz){
-  d$outside[d$outside>1]=0 #work around as some were 12
+  if("outside" %in% colnames(d)){d$outside[d$outside>1]=0} #work around as some were 12
   puma=(which(colnames(d)%in% curz))
   id=vector();mark=id;number=id;choice=id;namess=id
   ii=0
@@ -302,7 +305,7 @@ distribute_courses=function(d,work,xideal,curz){
           number[ii]=as.numeric(s[j])
           choice[ii]=ost
           if (!is.na(d$namess[i])){namess[ii]=d$namess[i]}
-          if (is.na(d$namess[i])){namess[ii]=paste('**',d$originalname[i])}
+          if (is.na(d$namess[i])){namess[ii]=paste('*',d$originalname[i])}
           
           #namees[ii]
           work[which(curz==ost)]=(work[which(curz==ost)])+1
@@ -351,8 +354,10 @@ distribute_courses=function(d,work,xideal,curz){
   ##
   #-------------------------------
   final_report_per_id(plot2)
+  #plot2=read.csv("final_report_per_id.csv",encoding = 'UTF-8')
   final_report_per_course(plot2)
-  Sys.setlocale("LC_CTYPE","English_United States.1252")
+  Sys.setlocale("LC_ALL","English_United States.1252") #LC_CTYPE
+  #options(encoding='native.enc')
   return(plot2)
 }
 
@@ -361,7 +366,8 @@ final_report_per_id=function(plot2){
   plot2b=plot2[which(is.na(as.numeric(as.character(plot2$id)))),]
   plot2a=plot2a[order(as.numeric(as.character(plot2a$id))),]
   plot3=rbind(plot2a,plot2b)
-  Sys.setlocale("LC_CTYPE","arabic")
+  Sys.setlocale("LC_ALL","arabic")
+  #options(encoding='UTF-8')
   write.csv(plot3, file = "final_report_per_id.csv",row.names = F,fileEncoding='UTF-8')
 }
 final_report_per_course=function(plot2){
@@ -381,10 +387,36 @@ final_report_per_course=function(plot2){
                paste(dffid,',',dffname, collapse='\n'))
     writeLines(txt4, fileConn)
     close(fileConn)
+    
+    
+    
+    
+    
     options( "ReporteRs-fontsize" = 12,
-             "ReporteRs-default-font" = "Arial")
+             "ReporteRs-default-font" = "Arial",
+             "ReporteRs-locale.language"='arabic',
+             "ReporteRs-locale.region"='EG')
     ldoc=length(dffid)
     dfdoc=data.frame(index=1:ldoc,dffname,dffid)
+    
+    
+    if(dim(dfdoc)[1]>15){
+      png(paste(cu,"report.png",collapse=''),height=550, width=610)
+    p<-tableGrob(dfdoc[1:round(dim(dfdoc)[1]/2),],cols=c("index","names","ID"),rows=NULL)
+    p2<-tableGrob(dfdoc[(round(dim(dfdoc)[1]/2)+1):dim(dfdoc)[1],],cols=c("index","names","ID"),rows=NULL)
+    grid.arrange(p,p2,top=textGrob(cu, gp=gpar(fontsize=20,fontface="bold"),just="top"),nrow=1)
+    }
+    if(dim(dfdoc)[1]<16){
+      png(paste(cu,"report.png",collapse=''),height=480, width=300)
+      p<-tableGrob(dfdoc,cols=c("index","names","ID"),rows=NULL)
+      grid.arrange(p,top=textGrob(cu, gp=gpar(fontsize=20,fontface="bold"),just="top"))
+    }
+    
+    
+    dev.off()
+    
+    
+    
     flex<-FlexTable(dfdoc,header.columns=F,body.par.props = parCenter(),
                     body.cell.props=cellProperties(text.direction = "tbrl"))
     flex2<-FlexTable(dfdoc,header.columns=F,body.par.props = parCenter(),
